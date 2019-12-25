@@ -53,7 +53,7 @@ follow Windows' quoting rules (see CommandLineToArgvW() for more
 information on those).  If it won't fit, ArgX sets the flat command
 line to the string
 
-  /CommandLineTooLong --commandLineTooLong -commandLineTooLong
+    /CommandLineTooLong --commandLineTooLong -commandLineTooLong
 
 which hopefully will cause any software you might choose to run to
 report an error unless it supports ArgX, in which case it won't be
@@ -71,12 +71,12 @@ form:
 
 The magic number must be
 
-  61 78 00 00   a x . .
+    61 78 00 00   a x . .
 
 for the ArgX mechanism to activate.  ArgXCreateProcess() updates this
 to
 
-  41 58 00 00   A X . .
+    41 58 00 00   A X . .
 
 to indicate to the child process that ArgX is in use, and fills in the
 dwArgc and pszArgv entries in the structure.
