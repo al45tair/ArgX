@@ -9,6 +9,7 @@
 
 #define WIN32_LEAN_AND_MEAN 1
 #include <windows.h>
+#include <limits.h>
 
 #include "ArgX.h"
 
@@ -87,9 +88,10 @@ BOOL CALLBACK InitArgxGetArgumentsA(PINIT_ONCE, PVOID, PVOID *)
   for (DWORD n = 0; n < dwArgc; ++n) {
     lpArgv[n] = lpStr;
 
+    int bufSiz = remainingStringSize <= INT_MAX ? (int)remainingStringSize : INT_MAX;
     int ret = WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS,
 				  lpArgvW[n], -1,
-				  lpStr, remainingStringSize,
+				  lpStr, bufSiz,
 				  NULL,
 				  NULL);
 

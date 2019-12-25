@@ -9,6 +9,7 @@
 
 #define WIN32_LEAN_AND_MEAN 1
 #include <windows.h>
+#include <limits.h>
 
 #include "ArgX.h"
 
@@ -41,9 +42,10 @@ namespace {
     for (DWORD n = 0; n < dwArgc; ++n) {
       lpArgvW[n] = lpStr;
 
+      int bufSiz = remainingStringSize <= INT_MAX ? (int)remainingStringSize : INT_MAX;
       int ret = MultiByteToWideChar(CP_ACP, 0,
 				    lpArgv[n], -1,
-				    lpStr, remainingStringSize);
+				    lpStr, bufSiz);
 
       if (!ret) {
 	DWORD dwErr = GetLastError();
