@@ -7,6 +7,6 @@ jobs:
     - stage: Compile
       script: |
         export PATH=$MSBUILD_PATH:$PATH
-      	MSBuild -t:Clean -t:Build
+        MSBuild -t:Clean -t:Build
     - stage: Test
       script: ./test.sh
