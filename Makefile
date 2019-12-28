@@ -64,32 +64,32 @@ lib/ArgX64.lib: $(LIB64OBJS) lib
 
 build/x86/argxtesta.exe: export LIB=$(LIB32)
 build/x86/argxtesta.exe: test/argxtest.cpp lib/ArgX32.lib
-	$(CL32) $(CPPFLAGS) -Fe$@ $^ $(TESTLIBS)
+	$(CL32) $(CPPFLAGS) -Fobuild/x86/ -Fe$@ $^ $(TESTLIBS)
 
 build/x86/argxtestw.exe: export LIB=$(LIB32)
 build/x86/argxtestw.exe: test/argxtest.cpp lib/ArgX32.lib
-	$(CL32) -DUNICODE -D_UNICODE $(CPPFLAGS) -Fe$@ $^ $(TESTLIBS)
+	$(CL32) -DUNICODE -D_UNICODE $(CPPFLAGS) -Fobuild/x86/ -Fe$@ $^ $(TESTLIBS)
 
 build/x64/argxtesta.exe: export LIB=$(LIB64)
 build/x64/argxtesta.exe: test/argxtest.cpp lib/ArgX64.lib
-	$(CL64) $(CPPFLAGS) -Fe$@ $^ $(TESTLIBS)
+	$(CL64) $(CPPFLAGS) -Fobuild/x64/ -Fe$@ $^ $(TESTLIBS)
 
 build/x64/argxtestw.exe: export LIB=$(LIB64)
 build/x64/argxtestw.exe: test/argxtest.cpp lib/ArgX64.lib
-	$(CL64) -DUNICODE -D_UNICODE $(CPPFLAGS) -Fe$@ $^ $(TESTLIBS)
+	$(CL64) -DUNICODE -D_UNICODE $(CPPFLAGS) -Fobuild/x64/ -Fe$@ $^ $(TESTLIBS)
 
 build/x86/argxruna.exe: export LIB=$(LIB32)
 build/x86/argxruna.exe: test/argxrun.cpp lib/ArgX32.lib
-	$(CL32) $(CPPFLAGS) -Fe$@ $^ $(TESTLIBS)
+	$(CL32) $(CPPFLAGS) -Fobuild/x86/ -Fe$@ $^ $(TESTLIBS)
 
 build/x86/argxrunw.exe: export LIB=$(LIB32)
 build/x86/argxrunw.exe: test/argxrun.cpp lib/ArgX32.lib
-	$(CL32) -DUNICODE -D_UNICODE $(CPPFLAGS) -Fe$@ $^ $(TESTLIBS)
+	$(CL32) -DUNICODE -D_UNICODE $(CPPFLAGS) -Fobuild/x86/ -Fe$@ $^ $(TESTLIBS)
 
 build/x64/argxruna.exe: export LIB=$(LIB64)
 build/x64/argxruna.exe: test/argxrun.cpp lib/ArgX64.lib
-	$(CL64) $(CPPFLAGS) -Fe$@ $^ $(TESTLIBS)
+	$(CL64) $(CPPFLAGS) -Fobuild/x64/ -Fe$@ $^ $(TESTLIBS)
 
 build/x64/argxrunw.exe: export LIB=$(LIB64)
 build/x64/argxrunw.exe: test/argxrun.cpp lib/ArgX64.lib
-	$(CL64) -DUNICODE -D_UNICODE $(CPPFLAGS) -Fe$@ $^ $(TESTLIBS)
+	$(CL64) -DUNICODE -D_UNICODE $(CPPFLAGS) -Fobuild/x64/ -Fe$@ $^ $(TESTLIBS)

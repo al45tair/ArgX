@@ -1,10 +1,5 @@
 language: cpp
 os: windows
-jobs:
-  include:
-    - stage: Compile
-      script:
-        - choco install -y make
-        - make
-    - stage: Test
-      script: make test
+script:
+  - choco install -y make
+  - make all test
