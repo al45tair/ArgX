@@ -1,6 +1,8 @@
 Windows ArgX Specification Version 1.0
 ======================================
 
+[![Build Status](https://travis-ci.org/al45tair/ArgX.svg?branch=master)](https://travis-ci.org/al45tair/ArgX)
+
 Introduction
 ------------
 
