@@ -1,11 +1,12 @@
 language: cpp
 os: windows
 env:
-  - MSBUILD_PATH="C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin"
+  - MSBUILD_PATH="/c/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/MSBuild/15.0/Bin"
 jobs:
   include:
     - stage: Compile
       script:
+        - find "/c/Program Files (x86)/" -name MSBuild.exe
         - export PATH=$MSBUILD_PATH:$PATH
         - MSBuild -t:Clean -t:Build
     - stage: Test
