@@ -57,10 +57,10 @@ build/x86 build/x64 lib:
 	mkdir -p $@
 
 lib/ArgX32.lib: $(LIB32OBJS) lib
-	$(AR) -nologo -out:$@ $^
+	$(AR) -nologo -out:$@ $(LIB32OBJS)
 
 lib/ArgX64.lib: $(LIB64OBJS) lib
-	$(AR) -nologo -out:$@ $^
+	$(AR) -nologo -out:$@ $(LIB64OBJS)
 
 build/x86/argxtesta.exe: export LIB=$(LIB32)
 build/x86/argxtesta.exe: test/argxtest.cpp lib/ArgX32.lib
