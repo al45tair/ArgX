@@ -5,6 +5,6 @@ env:
 jobs:
   include:
     - stage: Compile
-      script: $MSBuild -t:Clean -t:Build
+      script: $MSBUILD -t:Clean -t:Build
     - stage: Test
       script: ./test.sh
