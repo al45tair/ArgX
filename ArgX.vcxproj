@@ -5,6 +5,8 @@
   <UsingTask TaskName="LIB" AssemblyFile="$(VCTargetsPath)\Microsoft.Build.CPPTasks.Common.dll" />
   <UsingTask TaskName="SetEnv" AssemblyFile="$(VCTargetsPath)\Microsoft.Build.CPPTasks.Common.dll" />
 
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.VCTools.props" />
+
   <ItemGroup>
     <PublicInclude Include="include\ArgX.h" />
   </ItemGroup>
