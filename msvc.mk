@@ -24,7 +24,7 @@ SDK_VERSION:=${SDK_VERSION}.0
 
 # Work out the toolchain paths
 VS_BIN_ROOT:=${VS_ROOT}/VC/Tools/MSVC/${VS_VERSION}/bin
-VS_BIN32:=${VS_BIN_ROOT}/HostX64/x86
+VS_BIN32:=${VS_BIN_ROOT}/HostX86/x86
 VS_BIN64:=${VS_BIN_ROOT}/HostX64/x64
 
 # Work out the library and include paths
