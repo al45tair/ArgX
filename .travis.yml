@@ -1,0 +1,8 @@
+language: cpp
+os: windows
+jobs:
+  include:
+    - stage: Compile
+      script: msbuild
+    - stage: Test
+      script: ./test.sh
