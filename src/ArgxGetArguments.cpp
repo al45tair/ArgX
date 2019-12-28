@@ -5,8 +5,6 @@
  *
  */
 
-#include "pch.h"
-
 #define WIN32_LEAN_AND_MEAN 1
 #include <windows.h>
 #include <shellapi.h>
@@ -20,7 +18,8 @@ namespace {
 
 BOOL ARGXAPI
 ArgxGetArgumentsW(PDWORD    pdwArgc,
-		  LPCWSTR** plpArgv)
+		  LPCWSTR** plpArgv,
+		  BOOL*	    pbUsedArgX)
 {
   if (argxData.dwMagic != ARGX_MAGIC) {
     LPWSTR pszCmdline = GetCommandLineW();
@@ -29,11 +28,16 @@ ArgxGetArgumentsW(PDWORD    pdwArgc,
 
     *pdwArgc = numArgs;
     *plpArgv = (LPCWSTR*)args;
-    return FALSE;
+    if (pbUsedArgX)
+      *pbUsedArgX = FALSE;
+
+    return TRUE;
   }
 
   *pdwArgc = argxData.dwArgc;
   *plpArgv = const_cast<LPCWSTR*>(argxData.pszArgv);
+  if (pbUsedArgX)
+    *pbUsedArgX = TRUE;
 
   return TRUE;
 }

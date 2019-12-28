@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <UsingTask TaskName="CL" AssemblyFile="$(VCTargetsPath)\Microsoft.Build.CPPTasks.Common.dll" />
+  <UsingTask TaskName="Link" AssemblyFile="$(VCTargetsPath)\Microsoft.Build.CPPTasks.Common.dll" />
+  <UsingTask TaskName="LIB" AssemblyFile="$(VCTargetsPath)\Microsoft.Build.CPPTasks.Common.dll" />
+  <UsingTask TaskName="SetEnv" AssemblyFile="$(VCTargetsPath)\Microsoft.Build.CPPTasks.Common.dll" />
+
+  <ItemGroup>
+    <PublicInclude Include="include\ArgX.h" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PrivateInclude Include="src\PEB.hpp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <LibSources Include="src\ArgxCreateProcess.cpp" />
+    <LibSources Include="src\ArgxCreateProcessA.cpp" />
+    <LibSources Include="src\ArgxGetArguments.cpp" />
+    <LibSources Include="src\ArgxGetArgumentsA.cpp" />
+  </ItemGroup>
+
+  <Target Name="Build" DependsOnTargets="Lib32;Lib64;TestProgs32;TestProgs64">
+  </Target>
+
+  <Target Name="Lib32">
+    <Message Text="Building 32-bit ArgX library" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)"
+	     Properties="Platform=x86;OutputFile=lib\ArgX32.lib"
+	     Targets="Lib" />
+  </Target>
+
+  <Target Name="Lib64">
+    <Message Text="Building 64-bit ArgX library" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)"
+	     Properties="Platform=x64;OutputFile=lib\ArgX64.lib"
+	     Targets="Lib" />
+  </Target>
+
+  <Target Name="Lib">
+    <PropertyGroup>
+      <BuildPath>build\$(Platform)</BuildPath>
+      <CLToolExe>$(VCToolsInstallDir)bin\HostX64\$(Platform)\CL.exe</CLToolExe>
+    </PropertyGroup>
+    <MakeDir Directories="$(BuildPath)" Condition="!Exists('$(BuildPath)')" />
+    <CL Sources="@(LibSources)" ObjectFileName="$(BuildPath)\"
+	AdditionalIncludeDirectories="include"
+	WarningLevel="Level4"
+	TreatWarningAsError="true"
+	Optimization="MinSpace"
+	PreprocessorDefinitions="NDEBUG;LIB"
+	ToolExe="$(CLToolExe)" />
+    <LIB OutputFile="$(OutputFile)" Sources="@(LibSources->'$(BuildPath)\%(filename).obj')" />
+  </Target>
+
+  <Target Name="Clean">
+    <Delete Files="lib\ArgX32.lib;lib\Argx64.lib"/>
+    <RemoveDir Directories="build"/>
+  </Target>
+
+  <!-- Need to set library path to 32-bit here -->
+  <Target Name="TestProgs32" DependsOnTargets="Lib32">
+    <Message Text="Building 32-bit test programs" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)"
+	     Properties="Platform=x86;Unicode=false"
+	     Targets="TestProgs" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)"
+	     Properties="Platform=x86;Unicode=true"
+	     Targets="TestProgs" />
+  </Target>
+
+  <Target Name="TestProgs64" DependsOnTargets="Lib64">
+    <Message Text="Building 64-bit test programs" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)"
+	     Properties="Platform=x64;Unicode=false"
+	     Targets="TestProgs" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)"
+	     Properties="Platform=x64;Unicode=true"
+	     Targets="TestProgs" />
+  </Target>
+
+  <Target Name="TestProgs">
+    <PropertyGroup>
+      <ArgXLib Condition="'$(Platform)'=='x86'">lib\ArgX32.lib</ArgXLib>
+      <ArgXLib Condition="'$(Platform)'=='x64'">lib\ArgX64.lib</ArgXLib>
+      <LinkTarget Condition="'$(Platform)'=='x86'">MachineX86</LinkTarget>
+      <LinkTarget Condition="'$(Platform)'=='x64'">MachineX64</LinkTarget>
+      <ExecutableSuffix Condition="'$(Unicode)'=='false'">a</ExecutableSuffix>
+      <ExecutableSuffix Condition="'$(Unicode)'=='true'">w</ExecutableSuffix>
+      <BuildPath>build\$(Platform)</BuildPath>
+
+      <CLToolExe>$(VCToolsInstallDir)bin\HostX64\$(Platform)\CL.exe</CLToolExe>
+      <LinkToolExe>$(VCToolsInstallDir)bin\HostX64\$(Platform)\Link.exe</LinkToolExe>
+      <WindowsSdkDir Condition="'$(WindowsSdkDir)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v10.0@InstallationFolder)</WindowsSdkDir>
+      <WindowsSdkDir Condition="'$(WindowsSdkDir)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v10.0@InstallationFolder)</WindowsSdkDir>
+      <LatestSdk>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSdkTargetPlatformVersion('Windows', '10.0'))</LatestSdk>
+      <WindowsSdkLibDir>$(WindowsSdkDir)\Lib\$(LatestSdk)\um\$(Platform)</WindowsSdkLibDir>
+      <WindowsUcrtLibDir>$(WindowsSdkDir)\Lib\$(LatestSdk)\ucrt\$(Platform)</WindowsUcrtLibDir>
+
+      <LibPath>$(VCToolsInstallDir)lib\$(Platform);$(WindowsSdkLibDir);$(WindowsUcrtLibDir)</LibPath>
+    </PropertyGroup>
+
+    <Message Text="LibPath: $(LibPath)" />
+    <Message Text="Windows SDK: $(WindowsSdkDir)" />
+    <Message Text="Latest SDK Version: $(LatestSdk)" />
+
+    <SetEnv Name="LIB" Value="$(LibPath)" Prefix="false" />
+
+    <MakeDir Directories="$(BuildPath)" Condition="!Exists('$(BuildPath)')" />
+
+    <CL Sources="test\argxtest.cpp"
+	ObjectFileName="$(BuildPath)\argxtest$(ExecutableSuffix).obj"
+	AdditionalIncludeDirectories="include"
+	WarningLevel="Level4"
+	TreatWarningAsError="true"
+	Optimization="MinSpace"
+	PreprocessorDefinitions="NDEBUG"
+	ToolExe="$(CLToolExe)" />
+    <Link Sources="$(BuildPath)\argxtest$(ExecutableSuffix).obj;$(ArgXLib)"
+	  AdditionalDependencies="kernel32.lib;user32.lib;shell32.lib"
+	  TargetMachine="$(LinkTarget)"
+	  ToolExe="$(LinkToolExe)"
+	  OutputFile="$(BuildPath)\argxtest$(ExecutableSuffix).exe" />
+
+    <CL Sources="test\argxrun.cpp"
+	ObjectFileName="$(BuildPath)\argxrun$(ExecutableSuffix).obj"
+	AdditionalIncludeDirectories="include"
+	WarningLevel="Level4"
+	TreatWarningAsError="true"
+	Optimization="MinSpace"
+	PreprocessorDefinitions="NDEBUG"
+	ToolExe="$(CLToolExe)" />
+    <Link Sources="$(BuildPath)\argxrun$(ExecutableSuffix).obj;$(ArgXLib)"
+	  AdditionalDependencies="kernel32.lib;user32.lib;shell32.lib"
+	  TargetMachine="$(LinkTarget)"
+	  ToolExe="$(LinkToolExe)"
+	  OutputFile="$(BuildPath)\argxrun$(ExecutableSuffix).exe" />
+  </Target>
+
+</Project>

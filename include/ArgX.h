@@ -59,9 +59,11 @@ BOOL ARGXAPI ArgxCreateProcessA(LPCSTR			lpApplicationName,
 				LPPROCESS_INFORMATION	lpProcessInformation);
 
 BOOL ARGXAPI ArgxGetArgumentsW(PDWORD    pdwArgc,
-			       LPCWSTR** plpArgv);
-BOOL ARGXAPI ArgxGetArgumentsA(PDWORD pdwArgc,
-			       LPCSTR** plpArgv);
+			       LPCWSTR** plpArgv,
+			       BOOL*	 pbUsedArgX);
+BOOL ARGXAPI ArgxGetArgumentsA(PDWORD   pdwArgc,
+			       LPCSTR** plpArgv,
+			       BOOL* 	pbUsedArgX);
 
 #if _UNICODE
   #define ArgxCreateProcess ArgxCreateProcessW

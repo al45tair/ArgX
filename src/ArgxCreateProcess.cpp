@@ -5,8 +5,6 @@
  *
  */
 
-#include "pch.h"
-
 #define WIN32_LEAN_AND_MEAN 1
 #include <windows.h>
 #include <winnt.h>
@@ -218,8 +216,8 @@ ArgxCreateProcessW(LPCWSTR			lpApplicationName,
     goto fail;
 
   // Look for the ArgX section
-  BOOL bSupportsArgX;
-  DWORD64 ulArgXSectionAddr;
+  BOOL bSupportsArgX = FALSE;
+  DWORD64 ulArgXSectionAddr = 0;
 
   switch (bitness) {
   case BITNESS_32_BIT:
@@ -237,7 +235,7 @@ ArgxCreateProcessW(LPCWSTR			lpApplicationName,
 
   if (bSupportsArgX) {
     // Write the argument vector and update the ArgX section
-    BOOL bRet;
+    BOOL bRet = FALSE;
 
     switch (bitness) {
     case BITNESS_32_BIT:
@@ -280,8 +278,7 @@ ArgxCreateProcessW(LPCWSTR			lpApplicationName,
 
 namespace {
 
-BOOL CALLBACK InitArgxCreateFunction(PINIT_ONCE InitOnce, PVOID Parameter,
-				     PVOID *lpContext)
+BOOL CALLBACK InitArgxCreateFunction(PINIT_ONCE, PVOID, PVOID *)
 {
   hProcessHeap = GetProcessHeap();
   if (!hProcessHeap)

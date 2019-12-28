@@ -1,7 +1,6 @@
 # Ignore build folders
-Debug/
-Release/
-x64/
+build
+lib
 
 # Ignore user-specific Visual Studio files
 *.vcxproj.filters

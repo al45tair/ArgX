@@ -5,8 +5,6 @@
  *
  */
 
-#include "pch.h"
-
 #define WIN32_LEAN_AND_MEAN 1
 #include <windows.h>
 #include <limits.h>
@@ -19,27 +17,29 @@ namespace {
 
   INIT_ONCE initOnce = INIT_ONCE_STATIC_INIT;
 
+  BOOL	    bUsedArgX;
   DWORD     dwArgc;
   LPCSTR*   lpArgv;
 }
 
 BOOL ARGXAPI
 ArgxGetArgumentsA(PDWORD   pdwArgc,
-		  LPCSTR** plpArgv)
+		  LPCSTR** plpArgv,
+		  BOOL*	   pbUsedArgX)
 {
   // The first time this is called, and *only* the first time, convert the
   // argv array.
   if (!InitOnceExecuteOnce(&initOnce,
 			   InitArgxGetArgumentsA,
 			   NULL,
-			   NULL))
+			   NULL)) {
     return FALSE;
-
-  if (!lpArgv)
-    return FALSE;
+  }
 
   *pdwArgc = dwArgc;
   *plpArgv = lpArgv;
+  if (pbUsedArgX)
+    *pbUsedArgX = bUsedArgX;
 
   return TRUE;
 }
@@ -53,8 +53,8 @@ BOOL CALLBACK InitArgxGetArgumentsA(PINIT_ONCE, PVOID, PVOID *)
 
   dwArgc = 0;
   lpArgv = NULL;
-
-  if (!ArgxGetArgumentsW(&dwArgc, &lpArgvW))
+  
+  if (!ArgxGetArgumentsW(&dwArgc, &lpArgvW, &bUsedArgX))
     return FALSE;
 
   // First, work out how much memory we need for the converted strings
