@@ -3,6 +3,8 @@
 #  Test ArgX
 #
 
+echo
+
 work_dir=$(mktemp -d)
 if [[ ! "$work_dir" || ! -d "$work_dir" ]]; then
     echo "Failed to create temporary directory"
