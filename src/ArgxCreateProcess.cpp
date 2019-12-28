@@ -77,11 +77,15 @@ namespace {
   BOOL CALLBACK InitArgxCreateFunction(PINIT_ONCE InitOnce, PVOID Parameter,
 				       PVOID *lpContext);
 
+  BOOL GetImageBaseAddress(HANDLE hProcess,
+			   BITNESS bitness,
+			   DWORD64* pImageBaseAddr);
+
   BOOL FindArgXSection32(HANDLE hProcess,
-			 DWORD64 pebBaseAddress,
+			 DWORD64 imageBaseAddr,
 			 DWORD64* pArgXSectionAddr);
   BOOL FindArgXSection64(HANDLE hProcess,
-			 DWORD64 pebBaseAddress,
+			 DWORD64 imageBaseAddr,
 			 DWORD64* pArgXSectionAddr);
 
   BOOL WriteArguments32(HANDLE hProcess,
@@ -190,29 +194,16 @@ ArgxCreateProcessW(LPCWSTR			lpApplicationName,
 
   Free(pszCmdline);
 
-  // Now grab its PEB address
-  PROCESS_BASIC_INFORMATION64 pbi;
-  ULONG ulRetLength = 0;
-  NTSTATUS ntResult = fnNtQueryInformationProcess(lpProcessInformation->hProcess,
-						  ProcessBasicInformation,
-						  &pbi,
-						  sizeof(pbi),
-						  &ulRetLength);
-
-  if (!NT_SUCCESS(ntResult)) {
-    TerminateProcess(lpProcessInformation->hProcess, 0);
-    CloseHandle(lpProcessInformation->hProcess);
-    CloseHandle(lpProcessInformation->hThread);
-    SetLastError(result);
-    return FALSE;
-  }
-
-  DWORD64 pebBase = (DWORD64)pbi.PebBaseAddress;
-
-  // Need to know whether the process is 64-bit or 32-bit
+  // Find its image base address and bitness
   BITNESS bitness;
+  DWORD64 imageBaseAddr;
 
   if (!GetProcessBitness(lpProcessInformation->hProcess, &bitness))
+    goto fail;
+
+  if (!GetImageBaseAddress(lpProcessInformation->hProcess,
+			   bitness,
+			   &imageBaseAddr))
     goto fail;
 
   // Look for the ArgX section
@@ -221,14 +212,14 @@ ArgxCreateProcessW(LPCWSTR			lpApplicationName,
 
   switch (bitness) {
   case BITNESS_32_BIT:
+  case BITNESS_32_BIT_WOW64:
     bSupportsArgX = FindArgXSection32(lpProcessInformation->hProcess,
-				      pebBase,
+				      imageBaseAddr,
 				      &ulArgXSectionAddr);
     break;
-  case BITNESS_32_BIT_WOW64:
   case BITNESS_64_BIT:
     bSupportsArgX = FindArgXSection64(lpProcessInformation->hProcess,
-				      pebBase,
+				      imageBaseAddr,
 				      &ulArgXSectionAddr);
     break;
   }
@@ -504,32 +495,79 @@ namespace {
   const BYTE argxSection[8] = { 'A', 'r', 'g', 'X', 0, 0, 0, 0 };
 }
 
+BOOL GetImageBaseAddress(HANDLE hProcess,
+			 BITNESS bitness,
+			 DWORD64* pImageBaseAddr)
+{
+  *pImageBaseAddr = 0;
+
+  // Grab the PEB base address
+  PROCESS_BASIC_INFORMATION64 pbi;
+  ULONG ulRetLength = 0;
+  NTSTATUS ntResult = fnNtQueryInformationProcess(hProcess,
+						  ProcessBasicInformation,
+						  &pbi,
+						  sizeof(pbi),
+						  &ulRetLength);
+
+  if (!NT_SUCCESS(ntResult)) {
+    SetLastError(ntResult);
+    return FALSE;
+  }
+  
+  DWORD64 pebBase = (DWORD64)pbi.PebBaseAddress;
+
+  switch (bitness) {
+  case BITNESS_32_BIT:
+    {
+      innards::PEB32 peb;
+
+      if (!ArgxReadProcessMemory(hProcess,
+				 pebBase,
+				 &peb,
+				 sizeof(peb),
+				 NULL))
+	return FALSE;
+
+      *pImageBaseAddr = peb.ImageBaseAddress;
+    }
+    break;
+  case BITNESS_32_BIT_WOW64:
+  case BITNESS_64_BIT:
+    {
+      innards::PEB64 peb;
+
+      if (!ArgxReadProcessMemory(hProcess,
+				 pebBase,
+				 &peb,
+				 sizeof(peb),
+				 NULL))
+	return FALSE;
+
+      *pImageBaseAddr = peb.ImageBaseAddress;
+    }
+    break;
+  }
+
+  return TRUE;
+}
+
 BOOL FindArgXSection32(HANDLE hProcess,
-		       DWORD64 pebBaseAddr,
+		       DWORD64 imageBaseAddr,
 		       DWORD64* pArgXSectionAddr)
 {
-  innards::PEB32 peb;
-
-  // Read the 32-bit PEB
-  if (!ArgxReadProcessMemory(hProcess,
-			     pebBaseAddr,
-			     &peb,
-			     sizeof(peb),
-			     NULL))
-    return FALSE;
-
   // Now read the IMAGE_DOS_HEADER from ImageBaseAddress
   IMAGE_DOS_HEADER dosHeader;
 
   if (!ArgxReadProcessMemory(hProcess,
-			     peb.ImageBaseAddress,
+			     imageBaseAddr,
 			     &dosHeader,
 			     sizeof(dosHeader),
 			     NULL))
     return FALSE;
 
   // That gets us to the IMAGE_NT_HEADERS
-  DWORD64 pNtHeader = peb.ImageBaseAddress + dosHeader.e_lfanew;
+  DWORD64 pNtHeader = imageBaseAddr + dosHeader.e_lfanew;
   IMAGE_NT_HEADER_FIXED ntHeader;
 
   if (!ArgxReadProcessMemory(hProcess,
@@ -566,7 +604,7 @@ BOOL FindArgXSection32(HANDLE hProcess,
       if ((sections[n].Characteristics & (IMAGE_SCN_MEM_READ|IMAGE_SCN_MEM_WRITE|IMAGE_SCN_MEM_EXECUTE)) != (IMAGE_SCN_MEM_READ|IMAGE_SCN_MEM_WRITE))
 	continue;
 
-      DWORD64 argxAddr = sections[n].VirtualAddress + peb.ImageBaseAddress;
+      DWORD64 argxAddr = sections[n].VirtualAddress + imageBaseAddr;
       ARGX_SECTION_DATA32 argxData;
       if (!ArgxReadProcessMemory(hProcess,
 				 argxAddr,
@@ -593,31 +631,21 @@ BOOL FindArgXSection32(HANDLE hProcess,
 }
 
 BOOL FindArgXSection64(HANDLE hProcess,
-		       DWORD64 pebBaseAddr,
+		       DWORD64 imageBaseAddr,
 		       DWORD64* pArgXSectionAddr)
 {
-  innards::PEB64 peb;
-
-  // Read the 64-bit PEB
-  if (!ArgxReadProcessMemory(hProcess,
-			     pebBaseAddr,
-			     &peb,
-			     sizeof(peb),
-			     NULL))
-    return FALSE;
-
   // Now read the IMAGE_DOS_HEADER from ImageBaseAddress
   IMAGE_DOS_HEADER dosHeader;
 
   if (!ArgxReadProcessMemory(hProcess,
-			     peb.ImageBaseAddress,
+			     imageBaseAddr,
 			     &dosHeader,
 			     sizeof(dosHeader),
 			     NULL))
     return FALSE;
 
   // That gets us to the IMAGE_NT_HEADERS
-  DWORD64 pNtHeader = peb.ImageBaseAddress + dosHeader.e_lfanew;
+  DWORD64 pNtHeader = imageBaseAddr + dosHeader.e_lfanew;
   IMAGE_NT_HEADER_FIXED ntHeader;
 
   if (!ArgxReadProcessMemory(hProcess,
@@ -654,8 +682,8 @@ BOOL FindArgXSection64(HANDLE hProcess,
       if ((sections[n].Characteristics & (IMAGE_SCN_MEM_READ|IMAGE_SCN_MEM_WRITE|IMAGE_SCN_MEM_EXECUTE)) != (IMAGE_SCN_MEM_READ|IMAGE_SCN_MEM_WRITE))
 	continue;
 
-      DWORD64 argxAddr = sections[n].VirtualAddress + peb.ImageBaseAddress;
-      ARGX_SECTION_DATA64 argxData;
+      DWORD64 argxAddr = sections[n].VirtualAddress + imageBaseAddr;
+      ARGX_SECTION_DATA32 argxData;
       if (!ArgxReadProcessMemory(hProcess,
 				 argxAddr,
 				 &argxData,
