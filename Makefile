@@ -53,13 +53,13 @@ test:	build/x86/argxtesta.exe build/x86/argxtestw.exe \
 	build/x64/argxruna.exe build/x64/argxrunw.exe
 	./test.sh
 
-build/x86 build/x64:
+build/x86 build/x64 lib:
 	mkdir -p $@
 
-lib/ArgX32.lib: $(LIB32OBJS)
+lib/ArgX32.lib: $(LIB32OBJS) lib
 	$(AR) -nologo -out:$@ $^
 
-lib/ArgX64.lib: $(LIB64OBJS)
+lib/ArgX64.lib: $(LIB64OBJS) lib
 	$(AR) -nologo -out:$@ $^
 
 build/x86/argxtesta.exe: export LIB=$(LIB32)
