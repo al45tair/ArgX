@@ -1,0 +1,7 @@
+*.h	 text eol=crlf
+*.hpp	 text eol=crlf
+*.cpp	 text eol=crlf
+MANIFEST text eol=lf
+*.sh	 text eol=lf
+Makefile text eol=lf
+*.mk	 text eol=lf
