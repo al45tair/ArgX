@@ -1,5 +1,15 @@
 language: cpp
 os: windows
 script:
-  - choco install -y make
-  - make all test
+- choco install -y make
+- make test dist
+deploy:
+  provider: releases
+  api_key:
+    secure: NDL9uH6NeJE5xBE78HdeHqpv3ejBPahqAypqo1sodyaZMRJAL7OsxYaT0pJq/sOfUzrfCFJQNgcmJUymGK05orJ1X+NvovaMXuO/LUkG7NL/8URJkGwm8vv5XXGuORR2QEPj8N66Hr6ZVozQ1EsrMwzbcHIn3dkAth+i6nmHf7AJUc4YA7om60o+MgMkQY+D3y9WsW16A0+KmNFNwa8rXsS9tccOrMpnO0WMMHRI9CCN9GhJ0YN6AEA+xemboCRljX/0IcOPDKXKDxjD46w6FXuKIvZSQu+FdMGSOcj29bd/PImNk6qUJNB7zZScyk6NoNUaFhXgoYAM/SZAyo+mcS7kbkMX+pZPC8MCaLt9pQTE1k3nDqbiS3aEbyDaiFwnJGDfkBrt5XO8FZUxkbaYfupI2qj1eNSPJL10JUE68lQGJqGfgeziU92kOE13D9c5mmhKdpjkN+jhQ5P6IMJGNJANii9NsnhyVky/x4+18m/Xhvz8py3S94tFXLYXYfVz7Q7lrC4yduoDXeiuIkHvcbcCwGYq/XcwWp4BOWFn6m/0zp3G9AkW/Lrl2yaxvPAI+MN7YgdMA1qUew5FMznJBGgol3h71VE0XVkfW7grTHvIalp8sUuByg4z/TVt3ok7TlGzUDcoE7DM0XqYWokpuzbh8Wk/FCrshwYFxtG+hV4=
+  file_glob: true
+  skip_cleanup: true
+  file: dist/*
+  on:
+    repo: al45tair/ArgX
+    tags: true

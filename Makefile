@@ -40,9 +40,11 @@ build/x86/%.obj: src/%.cpp build/x86
 build/x64/%.obj: src/%.cpp build/x64
 	$(CL64) -c $(CPPFLAGS) -Fo$@ $<
 
-.PHONY: all clean test
+.PHONY: all libs clean test dist
 
-all:	lib/ArgX32.lib lib/ArgX64.lib
+all:	libs
+
+libs:	lib/ArgX32.lib lib/ArgX64.lib
 
 clean:
 	$(RM) -rf build lib/*
@@ -51,7 +53,10 @@ test:	build/x86/argxtesta.exe build/x86/argxtestw.exe \
 	build/x64/argxtesta.exe build/x64/argxtestw.exe \
 	build/x86/argxruna.exe build/x86/argxrunw.exe \
 	build/x64/argxruna.exe build/x64/argxrunw.exe
-	./test.sh
+	scripts/test.sh
+
+dist:	libs
+	scripts/make-dist.sh
 
 build/x86 build/x64 lib:
 	mkdir -p $@
