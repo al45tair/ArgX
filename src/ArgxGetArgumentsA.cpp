@@ -53,7 +53,7 @@ BOOL CALLBACK InitArgxGetArgumentsA(PINIT_ONCE, PVOID, PVOID *)
 
   dwArgc = 0;
   lpArgv = NULL;
-  
+
   if (!ArgxGetArgumentsW(&dwArgc, &lpArgvW, &bUsedArgX))
     return FALSE;
 

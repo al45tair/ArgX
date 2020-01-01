@@ -21,26 +21,58 @@ $(info  )
 include msvc.mk
 
 CFLAGS:=-nologo -O1 -W4 -WX -Iinclude
-CPPFLAGS:=$(CFLAGS)
+CPPFLAGS:=$(CFLAGS) -EHsc
 
 LIBSRCS:=ArgxCreateProcess.cpp \
 	 ArgxCreateProcessA.cpp \
 	 ArgxGetArguments.cpp \
-	 ArgxGetArgumentsA.cpp
+	 ArgxGetArgumentsA.cpp \
+	 ArgxFindExecutable.cpp \
+	 ArgxFindExecutableA.cpp \
+	 ArgxIsSupportedByExecutable.cpp \
+	 utils.cpp
+HEADERS:=include/ArgX.h src/PEB.hpp src/utils.hpp
 LIB32OBJS:=$(LIBSRCS:%.cpp=build/x86/%.obj)
 LIB64OBJS:=$(LIBSRCS:%.cpp=build/x64/%.obj)
 
-TESTLIBS:=kernel32.lib shell32.lib
+TESTLIBS:=kernel32.lib shell32.lib shlwapi.lib advapi32.lib
+TESTPROGS:=argxtest argxrun argxwhich argxsupported
+TESTEXES:=$(TESTPROGS:%=build/x86/%a.exe) $(TESTPROGS:%=build/x86/%w.exe) \
+	  $(TESTPROGS:%=build/x64/%a.exe) $(TESTPROGS:%=build/x64/%w.exe)
+
+UNICODE:=-DUNICODE -D_UNICODE
 
 export INCLUDE
 
-build/x86/%.obj: src/%.cpp build/x86
+build/x86/%.obj: src/%.cpp
+	@if [[ ! -d build/x86 ]]; then mkdir -p build/x86; fi
 	$(CL32) -c $(CPPFLAGS) -Fo$@ $<
 
-build/x64/%.obj: src/%.cpp build/x64
+build/x64/%.obj: src/%.cpp
+	@if [[ ! -d build/x64 ]]; then mkdir -p build/x64; fi
 	$(CL64) -c $(CPPFLAGS) -Fo$@ $<
 
-.PHONY: all libs clean test dist
+build/x86/%a.exe: export LIB=$(LIB32)
+build/x86/%a.exe: test/%.cpp lib/ArgX32.lib
+	@if [[ ! -d build/x86 ]]; then mkdir -p build/x86; fi
+	$(CL32) $(CPPFLAGS) -Fobuild/x86/ -Fe$@ $^ $(TESTLIBS)
+
+build/x64/%a.exe: export LIB=$(LIB64)
+build/x64/%a.exe: test/%.cpp lib/ArgX64.lib
+	@if [[ ! -d build/x64 ]]; then mkdir -p build/x64; fi
+	$(CL64) $(CPPFLAGS) -Fobuild/x64/ -Fe$@ $^ $(TESTLIBS)
+
+build/x86/%w.exe: export LIB=$(LIB32)
+build/x86/%w.exe: test/%.cpp lib/ArgX32.lib
+	@if [[ ! -d build/x86 ]]; then mkdir -p build/x86; fi
+	$(CL32) $(UNICODE) $(CPPFLAGS) -Fobuild/x86/ -Fe$@ $^ $(TESTLIBS)
+
+build/x64/%w.exe: export LIB=$(LIB64)
+build/x64/%w.exe: test/%.cpp lib/ArgX64.lib
+	@if [[ ! -d build/x64 ]]; then mkdir -p build/x64; fi
+	$(CL64) $(UNICODE) $(CPPFLAGS) -Fobuild/x64/ -Fe$@ $^ $(TESTLIBS)
+
+.PHONY: all libs clean test tests dist
 
 all:	libs
 
@@ -49,52 +81,20 @@ libs:	lib/ArgX32.lib lib/ArgX64.lib
 clean:
 	$(RM) -rf build lib/*
 
-test:	build/x86/argxtesta.exe build/x86/argxtestw.exe \
-	build/x64/argxtesta.exe build/x64/argxtestw.exe \
-	build/x86/argxruna.exe build/x86/argxrunw.exe \
-	build/x64/argxruna.exe build/x64/argxrunw.exe
+tests:	$(TESTEXES)
+
+test:	tests
 	scripts/test.sh
 
 dist:	libs
 	scripts/make-dist.sh
 
-build/x86 build/x64 lib:
-	mkdir -p $@
+$(LIB32OBJS): $(HEADERS)
+
+$(LIB64OBJS): $(HEADERS)
 
 lib/ArgX32.lib: $(LIB32OBJS) lib
 	$(AR) -nologo -out:$@ $(LIB32OBJS)
 
 lib/ArgX64.lib: $(LIB64OBJS) lib
 	$(AR) -nologo -out:$@ $(LIB64OBJS)
-
-build/x86/argxtesta.exe: export LIB=$(LIB32)
-build/x86/argxtesta.exe: test/argxtest.cpp lib/ArgX32.lib
-	$(CL32) $(CPPFLAGS) -Fobuild/x86/ -Fe$@ $^ $(TESTLIBS)
-
-build/x86/argxtestw.exe: export LIB=$(LIB32)
-build/x86/argxtestw.exe: test/argxtest.cpp lib/ArgX32.lib
-	$(CL32) -DUNICODE -D_UNICODE $(CPPFLAGS) -Fobuild/x86/ -Fe$@ $^ $(TESTLIBS)
-
-build/x64/argxtesta.exe: export LIB=$(LIB64)
-build/x64/argxtesta.exe: test/argxtest.cpp lib/ArgX64.lib
-	$(CL64) $(CPPFLAGS) -Fobuild/x64/ -Fe$@ $^ $(TESTLIBS)
-
-build/x64/argxtestw.exe: export LIB=$(LIB64)
-build/x64/argxtestw.exe: test/argxtest.cpp lib/ArgX64.lib
-	$(CL64) -DUNICODE -D_UNICODE $(CPPFLAGS) -Fobuild/x64/ -Fe$@ $^ $(TESTLIBS)
-
-build/x86/argxruna.exe: export LIB=$(LIB32)
-build/x86/argxruna.exe: test/argxrun.cpp lib/ArgX32.lib
-	$(CL32) $(CPPFLAGS) -Fobuild/x86/ -Fe$@ $^ $(TESTLIBS)
-
-build/x86/argxrunw.exe: export LIB=$(LIB32)
-build/x86/argxrunw.exe: test/argxrun.cpp lib/ArgX32.lib
-	$(CL32) -DUNICODE -D_UNICODE $(CPPFLAGS) -Fobuild/x86/ -Fe$@ $^ $(TESTLIBS)
-
-build/x64/argxruna.exe: export LIB=$(LIB64)
-build/x64/argxruna.exe: test/argxrun.cpp lib/ArgX64.lib
-	$(CL64) $(CPPFLAGS) -Fobuild/x64/ -Fe$@ $^ $(TESTLIBS)
-
-build/x64/argxrunw.exe: export LIB=$(LIB64)
-build/x64/argxrunw.exe: test/argxrun.cpp lib/ArgX64.lib
-	$(CL64) -DUNICODE -D_UNICODE $(CPPFLAGS) -Fobuild/x64/ -Fe$@ $^ $(TESTLIBS)

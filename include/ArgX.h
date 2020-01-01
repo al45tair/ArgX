@@ -35,6 +35,7 @@ typedef struct {
 //      the system ANSI code page IN SPITE OF WHATEVER THE CONSOLE IS
 //      USING.  This can cause very confusing behaviour for end users.
 
+// ArgX version of CreateProcess()
 BOOL ARGXAPI ArgxCreateProcessW(LPCWSTR			lpApplicationName,
 				LPCWSTR*		lpArgv,
 				DWORD			dwArgc,
@@ -58,6 +59,33 @@ BOOL ARGXAPI ArgxCreateProcessA(LPCSTR			lpApplicationName,
 				LPSTARTUPINFOA		lpStartupInfo,
 				LPPROCESS_INFORMATION	lpProcessInformation);
 
+// ArgX version of CreateProcessAsUser()
+BOOL ARGXAPI ArgxCreateProcessAsUserW(HANDLE		    hToken,
+				      LPCWSTR		    lpApplicationName,
+				      LPCWSTR*		    lpArgv,
+				      DWORD		    dwArgc,
+				      LPSECURITY_ATTRIBUTES lpProcessAttributes,
+				      LPSECURITY_ATTRIBUTES lpThreadAttributes,
+				      BOOL		    bInheritHandles,
+				      DWORD		    dwCreationFlags,
+				      LPVOID		    lpEnvironment,
+				      LPCWSTR		    lpCurrentDirectory,
+				      LPSTARTUPINFOW	    lpStartupInfo,
+				      LPPROCESS_INFORMATION lpProcessInformation);
+BOOL ARGXAPI ArgxCreateProcessAsUserA(HANDLE 		    hToken,
+				      LPCSTR		    lpApplicationName,
+				      LPCSTR*		    lpArgv,
+				      DWORD		    dwArgc,
+				      LPSECURITY_ATTRIBUTES lpProcessAttributes,
+				      LPSECURITY_ATTRIBUTES lpThreadAttributes,
+				      BOOL		    bInheritHandles,
+				      DWORD		    dwCreationFlags,
+				      LPVOID		    lpEnvironment,
+				      LPCSTR		    lpCurrentDirectory,
+				      LPSTARTUPINFOA	    lpStartupInfo,
+				      LPPROCESS_INFORMATION lpProcessInformation);
+
+// Get the argument vector (works with or without ArgX)
 BOOL ARGXAPI ArgxGetArgumentsW(PDWORD    pdwArgc,
 			       LPCWSTR** plpArgv,
 			       BOOL*	 pbUsedArgX);
@@ -65,12 +93,27 @@ BOOL ARGXAPI ArgxGetArgumentsA(PDWORD   pdwArgc,
 			       LPCSTR** plpArgv,
 			       BOOL* 	pbUsedArgX);
 
+// Searches for an executable with the given name; see CreateProcess() for logic.
+// Returns memory allocated with LocalAlloc().
+LPWSTR ARGXAPI ArgxFindExecutableW(LPCWSTR lpszArgv0);
+LPSTR ARGXAPI ArgxFindExecutableA(LPCSTR lpszArgv0);
+
+// Test if an executable supports ArgX or not
+BOOL ARGXAPI ArgxIsSupportedByExecutableW(LPCWSTR lpszExecutablePath);
+BOOL ARGXAPI ArgxIsSupportedByExecutableA(LPCSTR lpszExecutablePath);
+
 #if _UNICODE
-  #define ArgxCreateProcess ArgxCreateProcessW
-  #define ArgxGetArguments  ArgxGetArgumentsW
+  #define ArgxCreateProcess		ArgxCreateProcessW
+  #define ArgxCreateProcessAsUser	ArgxCreateProcessAsUserW
+  #define ArgxGetArguments		ArgxGetArgumentsW
+  #define ArgxFindExecutable		ArgxFindExecutableW
+  #define ArgxIsSupportedByExecutable	ArgxIsSupportedByExecutableW
 #else
-  #define ArgxCreateProcess ArgxCreateProcessA
-  #define ArgxGetArguments  ArgxGetArgumentsA
+  #define ArgxCreateProcess		ArgxCreateProcessA
+  #define ArgxCreateProcessAsUser	ArgxCreateProcessAsUserA
+  #define ArgxGetArguments		ArgxGetArgumentsA
+  #define ArgxFindExecutable		ArgxFindExecutableA
+  #define ArgxIsSupportedByExecutable	ArgxIsSupportedByExecutableA
 #endif
 
 #ifdef __cplusplus

@@ -1,5 +1,5 @@
-Windows ArgX Specification Version 1.0
-======================================
+ArgX - Better argument passing for Windows
+==========================================
 
 [![Build Status](https://travis-ci.org/al45tair/ArgX.svg?branch=master)](https://travis-ci.org/al45tair/ArgX)
 
@@ -52,14 +52,9 @@ The idea is very simple.  When you use the ArgxCreateProcess() API to
 start a new process, you pass in an argv[] array.  ArgxCreateProcess()
 will construct a flat command line, if it will fit, taking care to
 follow Windows' quoting rules (see CommandLineToArgvW() for more
-information on those).  If it won't fit, ArgX sets the flat command
-line to the string
-
-    /CommandLineTooLong --commandLineTooLong -commandLineTooLong
-
-which hopefully will cause any software you might choose to run to
-report an error unless it supports ArgX, in which case it won't be
-using the flat command line data anyway.
+information on those).  If it won't fit, and the executable we're starting
+doesn't support ArgX, ArgxCreateProcess() returns FALSE with the last error
+set to ERROR_BAD_LENGTH.
 
 Next, ArgxCreateProcess() examines the executable image it is starting
 to see whether the image contains a section called "ArgX", of the following
@@ -105,6 +100,9 @@ CreateProcessW(), with the exception that it has lpArgv and dwArgc
 arguments instead of lpCmdLine.  ArgxCreateProcessW() handles all of
 the details of the ArgX mechanism, and it should be a straightforward
 API swap in 99% of cases.
+
+There's also ArgxCreateProcessAsUserW(), ArgxFindExecutableW() and
+ArgxIsSuportedByExecutableW().
 
 What about ANSI functions?
 --------------------------
