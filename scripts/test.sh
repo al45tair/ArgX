@@ -99,7 +99,7 @@ function test_findexe {
     # We don't do anything if there's already a path
     test0=$($testexe "C:\\foo\\bar\\baz")
     if [[ "$test0" != "C:\\foo\\bar\\baz" ]]; then
-	echo "failed (0)"
+	echo "failed (0) - $test0"
 	result=1
 	return 1
     fi
@@ -108,7 +108,7 @@ function test_findexe {
     loadpath=$(dirname $testexe | cygpath -w -f-)
     test1=$($testexe argxruna)
     if [[ "$test1" != "$loadpath\\argxruna.exe" ]]; then
-	echo "failed (1)"
+	echo "failed (1) - $test1"
 	result=1
 	return 1
     fi
@@ -120,7 +120,7 @@ function test_findexe {
     test2=$($testexe frob)
     popd > /dev/null
     if [[ "$test2" != "$cygwork\\frob.exe" ]]; then
-	echo "failed (2)"
+	echo "failed (2) - $test2"
 	result=1
 	return 1
     fi
@@ -143,9 +143,9 @@ function test_findexe {
 	return 1
     fi
 
-    # 6. Things in PATH (assumes Git is installed))
-    test5=$($testexe bash)
-    if [[ "$test5" != "C:\\Program Files\\Git\\usr\bin\\bash.exe" ]]; then
+    # 6. Things in PATH (assumes Git is installed and in the PATH)
+    test5=$($testexe winpty)
+    if grep -q -i "C:\\Program Files\\Git\\usr\bin\\winpty.exe" <<< $test5; then
 	echo "failed (6) - $test5"
 	result=1
 	return 1
@@ -160,25 +160,25 @@ function test_supported {
 
     testexe=$(realpath $2.exe)
 
-    if ! $testexe build/x86/argxruna.exe | grep "does not support ArgX" > /dev/null; then
+    if ! $testexe build/x86/argxruna.exe | grep -q "does not support ArgX"; then
 	echo "failed (1)"
 	result=1
 	return 1
     fi
 
-    if ! $testexe build/x86/argxtesta.exe | grep "supports ArgX" > /dev/null; then
+    if ! $testexe build/x86/argxtesta.exe | grep -q "supports ArgX"; then
 	echo "failed (2)"
 	result=1
 	return 1
     fi
 
-    if ! $testexe build/x64/argxruna.exe | grep "does not support ArgX" > /dev/null; then
+    if ! $testexe build/x64/argxruna.exe | grep -q "does not support ArgX"; then
 	echo "failed (3)"
 	result=1
 	return 1
     fi
 
-    if ! $testexe build/x64/argxtesta.exe | grep "supports ArgX" > /dev/null; then
+    if ! $testexe build/x64/argxtesta.exe | grep -q "supports ArgX"; then
 	echo "failed (4)"
 	result=1
 	return 1
