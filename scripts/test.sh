@@ -125,9 +125,9 @@ function test_findexe {
 	return 1
     fi
 
-    # 3. The system directory
+    # 3. The system directory (we use grep for this to do case-insensitive match)
     test3=$($testexe subst)
-    if [[ "$test3" != "C:\\WINDOWS\\system32\\subst.exe" ]]; then
+    if grep -q -i "C:\\WINDOWS\\system32\\subst.exe" <<< $test3; then
 	echo "failed (3) - $test3"
 	result=1
 	return 1
@@ -135,9 +135,9 @@ function test_findexe {
 
     # We skip the 16-bit Windows directory because it's empty on 64-bit installs
 
-    # 5. The Windows directory
+    # 5. The Windows directory (again, we use grep)
     test4=$($testexe winhlp32)
-    if [[ "$test4" != "C:\\WINDOWS\\winhlp32.exe" ]]; then
+    if grep -q -i "C:\\WINDOWS\\winhlp32.exe" <<< $test4; then
 	echo "failed (5) - $test4"
 	result=1
 	return 1
