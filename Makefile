@@ -93,8 +93,10 @@ $(LIB32OBJS): $(HEADERS)
 
 $(LIB64OBJS): $(HEADERS)
 
-lib/ArgX32.lib: $(LIB32OBJS) lib
+lib/ArgX32.lib: $(LIB32OBJS)
+	@if [[ ! -d lib ]]; then mkdir -p lib; fi
 	$(AR) -nologo -out:$@ $(LIB32OBJS)
 
-lib/ArgX64.lib: $(LIB64OBJS) lib
+lib/ArgX64.lib: $(LIB64OBJS)
+	@if [[ ! -d lib ]]; then mkdir -p lib; fi
 	$(AR) -nologo -out:$@ $(LIB64OBJS)
