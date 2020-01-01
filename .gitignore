@@ -2,6 +2,7 @@
 build
 lib
 dist
+doc/_build
 
 # Ignore user-specific Visual Studio files
 *.vcxproj.filters

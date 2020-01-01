@@ -72,7 +72,7 @@ build/x64/%w.exe: test/%.cpp lib/ArgX64.lib
 	@if [[ ! -d build/x64 ]]; then mkdir -p build/x64; fi
 	$(CL64) $(UNICODE) $(CPPFLAGS) -Fobuild/x64/ -Fe$@ $^ $(TESTLIBS)
 
-.PHONY: all libs clean test tests dist
+.PHONY: all libs clean test tests dist doc
 
 all:	libs
 
@@ -88,6 +88,9 @@ test:	tests
 
 dist:	libs
 	scripts/make-dist.sh
+
+doc:
+	$(MAKE) -C doc html
 
 $(LIB32OBJS): $(HEADERS)
 

@@ -1,6 +1,7 @@
 LICENSE
 Makefile
 README.md
+doc
 include
 lib
 msvc.mk
