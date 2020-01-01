@@ -126,8 +126,8 @@ function test_findexe {
     fi
 
     # 3. The system directory
-    test3=$($testexe net)
-    if [[ "$test3" != "C:\\WINDOWS\\system32\\net.exe" ]]; then
+    test3=$($testexe subst)
+    if [[ "$test3" != "C:\\WINDOWS\\system32\\subst.exe" ]]; then
 	echo "failed (3)"
 	result=1
 	return 1
