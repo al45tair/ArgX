@@ -177,7 +177,7 @@ ArgxFindExecutableW(LPCWSTR lpszArgv0)
 
   // If it has a path, return a copy of the string as-is
   if (hasPath) {
-    LPWSTR pszResult = (LPWSTR)LocalAlloc(LMEM_FIXED, len + 1);
+    LPWSTR pszResult = (LPWSTR)LocalAlloc(LMEM_FIXED, (len + 1) * sizeof(WCHAR));
     CopyMemory(pszResult, lpszArgv0, (len + 1) * sizeof(WCHAR));
     return pszResult;
   }
