@@ -3,6 +3,11 @@ ArgX - Better argument passing for Windows
 
 .. image:: https://travis-ci.org/al45tair/ArgX.svg?branch=master
     :target: https://travis-ci.org/al45tair/ArgX
+    :alt: Build Status
+
+.. image:: https://readthedocs.org/projects/argx/badge/?version=latest
+    :target: https://argx.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
 
 Introduction
 ------------
