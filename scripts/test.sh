@@ -128,7 +128,7 @@ function test_findexe {
     # 3. The system directory
     test3=$($testexe subst)
     if [[ "$test3" != "C:\\WINDOWS\\system32\\subst.exe" ]]; then
-	echo "failed (3)"
+	echo "failed (3) - $test3"
 	result=1
 	return 1
     fi
@@ -138,7 +138,7 @@ function test_findexe {
     # 5. The Windows directory
     test4=$($testexe winhlp32)
     if [[ "$test4" != "C:\\WINDOWS\\winhlp32.exe" ]]; then
-	echo "failed (5)"
+	echo "failed (5) - $test4"
 	result=1
 	return 1
     fi
@@ -146,7 +146,7 @@ function test_findexe {
     # 6. Things in PATH (assumes Git is installed))
     test5=$($testexe bash)
     if [[ "$test5" != "C:\\Program Files\\Git\\usr\bin\\bash.exe" ]]; then
-	echo "failed (6)"
+	echo "failed (6) - $test5"
 	result=1
 	return 1
     fi
